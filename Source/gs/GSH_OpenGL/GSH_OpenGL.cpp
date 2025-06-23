@@ -1669,6 +1669,13 @@ void CGSH_OpenGL::Prim_Sprite()
 				nX2 += 0.5f;
 				nS[1] = (uv[1].GetU() + 0.5f) / static_cast<float>(m_nTexWidth);
 			}
+
+			fractionalPart = nY2 - floor(nY2);
+			if(fractionalPart >= 0.4f && fractionalPart <= 0.6f)
+			{
+				nY2 += 0.5f;
+				nT[1] = (uv[1].GetV() + 0.5f) / static_cast<float>(m_nTexHeight);
+			}
 		}
 		else
 		{
@@ -1689,6 +1696,11 @@ void CGSH_OpenGL::Prim_Sprite()
 			nT[1] = st[1].nT / nQ2;
 		}
 	}
+
+	nX1 = roundf(nX1);
+	nY1 = roundf(nY1);
+	nX2 = roundf(nX2);
+	nY2 = roundf(nY2);
 
 	auto color = MakeColor(
 	    rgbaq[1].nR, rgbaq[1].nG,
