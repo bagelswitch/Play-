@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <assert.h>
 #include <cstring>
@@ -79,7 +80,6 @@ void CGSH_OpenGL::InitializeImpl()
 	InitializeRC();
 
 	m_nVtxCount = 0;
-
 
 	m_renderState.isValid = false;
 	m_validGlState = 0;
@@ -650,12 +650,6 @@ void CGSH_OpenGL::SetRenderingContext(uint64 primReg)
 	m_nPrimOfsX = offset.GetX();
 	m_nPrimOfsY = offset.GetY();
 
-	// Account for the fact that PS2 assumes the pixel center at the bottom left,
-	// but OpenGL at the center of the screen. On even resolutions this causes a slight
-	// discrepancy.
-	m_nPrimOfsX -= 0.5f;
-	m_nPrimOfsY -= 0.5f;
-
 	CHECKGLERROR();
 
 	m_renderState.isValid = true;
@@ -778,7 +772,9 @@ void CGSH_OpenGL::SetupBlendingFunction(uint64 alphaReg)
 	else if((alpha.nA == ALPHABLEND_ABD_CD) && (alpha.nB == ALPHABLEND_ABD_CS) && (alpha.nC == ALPHABLEND_C_AD) && (alpha.nD == ALPHABLEND_ABD_CS))
 	{
 		//1010 -> Cs * (1 - Ad) + Cd * Ad
-		glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE, GL_ZERO);
+		//glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA, GL_ONE, GL_ZERO);
+		// Workaround for TC3's grey haze.
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 	}
 	else if((alpha.nA == ALPHABLEND_ABD_CD) && (alpha.nB == ALPHABLEND_ABD_CS) && (alpha.nC == ALPHABLEND_C_FIX) && (alpha.nD == ALPHABLEND_ABD_CS))
 	{
@@ -950,10 +946,12 @@ void CGSH_OpenGL::SetupFramebuffer(uint64 frameReg, uint64 zbufReg, uint64 sciss
 	auto scissor = make_convertible<SCISSOR>(scissorReg);
 	auto test = make_convertible<TEST>(testReg);
 
-	bool r = (frame.nMask & 0x000000FF) < 255;
-	bool g = (frame.nMask & 0x0000FF00) < 255;
-	bool b = (frame.nMask & 0x00FF0000) < 255;
-	bool a = (frame.nMask & 0xFF000000) < 255;
+	// Check if all bits are set. Stuff like capcoms fighting jam and tekkens test menu
+	// seem to set a single bit in red, which meant we were disabling the red channel completely
+	bool r = (frame.nMask & 0x000000FF) != 0xFF;
+	bool g = (frame.nMask & 0x0000FF00) != 0xFF00;
+	bool b = (frame.nMask & 0x00FF0000) != 0xFF0000;
+	bool a = (frame.nMask & 0xFF000000) != 0xFF000000;
 
 	//Don't write to alpha in PSMCT24
 	if(frame.nPsm == PSMCT24)
@@ -977,6 +975,7 @@ void CGSH_OpenGL::SetupFramebuffer(uint64 frameReg, uint64 zbufReg, uint64 sciss
 	m_renderState.colorMaskG = g;
 	m_renderState.colorMaskB = b;
 	m_renderState.colorMaskA = a;
+
 	m_validGlState &= ~GLSTATE_COLORMASK;
 
 	//Check if we're drawing into a buffer that's been used for depth before
@@ -985,7 +984,6 @@ void CGSH_OpenGL::SetupFramebuffer(uint64 frameReg, uint64 zbufReg, uint64 sciss
 		auto depthbuffer = FindDepthbuffer(zbufWrite, frame);
 		m_drawingToDepth = (depthbuffer != nullptr);
 	}
-
 	//Look for a framebuffer that matches the specified information
 	auto framebuffer = FindFramebuffer(frame);
 	if(!framebuffer)
@@ -1639,6 +1637,21 @@ void CGSH_OpenGL::Prim_Sprite()
 
 			nT[0] = uv[0].GetV() / static_cast<float>(m_nTexHeight);
 			nT[1] = uv[1].GetV() / static_cast<float>(m_nTexHeight);
+
+			// Avoid half pixels causing black lines in Tekken.
+			float fractionalPart = nX2 - floor(nX2);
+			if(fractionalPart >= 0.4f && fractionalPart <= 0.6f)
+			{
+				nX2 += 0.5f;
+				nS[1] = (uv[1].GetU() + 0.5f) / static_cast<float>(m_nTexWidth);
+			}
+
+			fractionalPart = nY2 - floor(nY2);
+			if(fractionalPart >= 0.4f && fractionalPart <= 0.6f)
+			{
+				nY2 += 0.5f;
+				nT[1] = (uv[1].GetV() + 0.5f) / static_cast<float>(m_nTexHeight);
+			}
 		}
 		else
 		{
@@ -1659,6 +1672,11 @@ void CGSH_OpenGL::Prim_Sprite()
 			nT[1] = st[1].nT / nQ2;
 		}
 	}
+
+	nX1 = roundf(nX1);
+	nY1 = roundf(nY1);
+	nX2 = roundf(nX2);
+	nY2 = roundf(nY2);
 
 	auto color = MakeColor(
 	    rgbaq[1].nR, rgbaq[1].nG,

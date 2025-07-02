@@ -108,6 +108,8 @@ public:
 		GS_DISPLAY1 = 0x12000080,
 		GS_DISPFB2 = 0x12000090,
 		GS_DISPLAY2 = 0x120000A0,
+		GS_EXTBUF = 0x120000E0,  // External buffer register (arcade/Time Crisis 3)
+		GS_EXTDATA = 0x120000E4, // External data register (arcade/Time Crisis 3)
 		GS_CSR_ALT = 0x12000400, // Used by funslower demo
 		GS_CSR = 0x12001000,
 		GS_IMR = 0x12001010,
@@ -1050,8 +1052,8 @@ protected:
 	virtual void BeginTransferWrite();
 	virtual void TransferWrite(const uint8*, uint32);
 
-	virtual void WriteBackMemoryCache(){};
-	virtual void SyncMemoryCache(){};
+	virtual void WriteBackMemoryCache() {};
+	virtual void SyncMemoryCache() {};
 
 	TRANSFERWRITEHANDLER m_transferWriteHandlers[PSM_MAX];
 	TRANSFERREADHANDLER m_transferReadHandlers[PSM_MAX];
@@ -1091,6 +1093,8 @@ protected:
 	DELAYED_REGISTER m_nDISPLAY1; //0x12000080
 	DELAYED_REGISTER m_nDISPFB2;  //0x12000090
 	DELAYED_REGISTER m_nDISPLAY2; //0x120000A0
+	uint64 m_nEXTBUF;             //0x120000E0 (arcade/Time Crisis 3)
+	uint64 m_nEXTDATA;            //0x120000E4 (arcade/Time Crisis 3)
 	uint64 m_nCSR;                //0x12001000
 	uint64 m_nIMR;                //0x12001010
 	uint64 m_nBUSDIR;             //0x12001040

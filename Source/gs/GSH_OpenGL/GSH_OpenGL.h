@@ -225,7 +225,7 @@ private:
 		uint32 m_contents[256];
 	};
 
-    struct MPaletteKey
+	struct MPaletteKey
 	{
 		MPaletteKey();
 
@@ -237,8 +237,7 @@ private:
 		bool operator==(const MPaletteKey& other) const
 		{
 			return (
-				(m_live == other.m_live && m_isIDTEX4 == other.m_isIDTEX4 && m_cpsm == other.m_cpsm && m_csa == other.m_csa)
-			);
+			    (m_live == other.m_live && m_isIDTEX4 == other.m_isIDTEX4 && m_cpsm == other.m_cpsm && m_csa == other.m_csa));
 		}
 	};
 

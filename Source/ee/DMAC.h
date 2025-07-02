@@ -88,6 +88,7 @@ public:
 
 		D_ENABLER = 0x1000F520,
 		D_ENABLEW = 0x1000F590,
+		D_ARCADE_EXT = 0x1000F592, // Arcade-specific register (Time Crisis 3)
 	};
 
 	enum CHCR_BIT

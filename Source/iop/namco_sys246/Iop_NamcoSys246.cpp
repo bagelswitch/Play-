@@ -35,6 +35,7 @@ enum
 	JVS_CMD_COININP = 0x21,
 	JVS_CMD_ANLINP = 0x22,
 	JVS_CMD_SCRPOSINP = 0x25,
+	JVS_CMD_GENERALOUTPUT2 = 0x37,
 	JVS_CMD_COINDEC = 0x30,
 	JVS_CMD_COININC = 0x35,
 
@@ -130,6 +131,18 @@ void CSys246::Invoke(CMIPS& context, unsigned int functionId)
 
 void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 {
+	// Add CPU throttling to prevent 100% usage
+	static auto lastProcessTime = std::chrono::steady_clock::now();
+	auto currentTime = std::chrono::steady_clock::now();
+	auto timeDiff = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - lastProcessTime);
+
+	// Throttle to realistic JVS communication speed (e.g., 115200 baud = ~11.5KB/s)
+	if(timeDiff.count() < 100) // 100 microseconds minimum between packets
+	{
+		std::this_thread::sleep_for(std::chrono::microseconds(100 - timeDiff.count()));
+	}
+	lastProcessTime = std::chrono::steady_clock::now();
+
 	assert(*input == JVS_SYNC);
 	input++;
 	uint8 inDest = *input++;
@@ -368,6 +381,31 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 
 			(*output++) = 0x01; //Command success
 
+			(*dstSize) += 1;
+		}
+		break;
+		case JVS_CMD_GENERALOUTPUT2:
+		{
+			// Read the number of bytes to process
+			assert(inSize >= 1);
+			uint8 byteCount = (*input++);
+			inWorkChecksum += byteCount;
+			inSize--;
+
+			// Process the output data bytes
+			for(int i = 0; i < byteCount; i++)
+			{
+				assert(inSize > 0);
+				uint8 outputData = (*input++);
+				inWorkChecksum += outputData;
+				inSize--;
+
+				// Handle the output data as needed
+				// This could control LEDs, lamps, or other arcade hardware
+				// For now, we'll just acknowledge the command
+			}
+
+			(*output++) = 0x01; // Command success
 			(*dstSize) += 1;
 		}
 		break;
