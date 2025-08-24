@@ -947,10 +947,10 @@ void CGSH_OpenGL::SetupFramebuffer(uint64 frameReg, uint64 zbufReg, uint64 sciss
 	auto scissor = make_convertible<SCISSOR>(scissorReg);
 	auto test = make_convertible<TEST>(testReg);
 
-	bool r = (frame.nMask & 0x000000FF) == 0;
-	bool g = (frame.nMask & 0x0000FF00) == 0;
-	bool b = (frame.nMask & 0x00FF0000) == 0;
-	bool a = (frame.nMask & 0xFF000000) == 0;
+	bool r = (frame.nMask & 0x000000FF) < 255;
+	bool g = (frame.nMask & 0x0000FF00) < 255;
+	bool b = (frame.nMask & 0x00FF0000) < 255;
+	bool a = (frame.nMask & 0xFF000000) < 255;
 
 	//Don't write to alpha in PSMCT24
 	if(frame.nPsm == PSMCT24)
