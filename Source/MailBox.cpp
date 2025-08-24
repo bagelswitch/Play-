@@ -8,10 +8,7 @@ bool CMailBox::IsPending() const
 void CMailBox::WaitForCall()
 {
 	std::unique_lock callLock(m_callMutex);
-	while(!IsPending())
-	{
-		m_waitCondition.wait(callLock);
-	}
+    m_waitCondition.wait(callLock, [this] { return IsPending(); });
 }
 
 void CMailBox::WaitForCall(unsigned int timeOut)

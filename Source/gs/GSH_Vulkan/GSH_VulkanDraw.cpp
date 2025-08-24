@@ -58,8 +58,7 @@ CDraw::~CDraw()
 
 void CDraw::SetPipelineCaps(const PIPELINE_CAPS& caps)
 {
-	bool changed = static_cast<uint64>(caps) != static_cast<uint64>(m_pipelineCaps);
-	if(!changed) return;
+	if(caps == m_pipelineCaps) return;
 	if(caps.textureUseMemoryCopy)
 	{
 		FlushRenderPass();
