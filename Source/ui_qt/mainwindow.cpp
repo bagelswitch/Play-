@@ -452,6 +452,15 @@ void MainWindow::BootArcadeMachine(fs::path arcadeDefPath)
 {
 	try
 	{
+		// not the right place for this . . .
+		if(arcadeDefPath == "wanganmd.arcadedef" || arcadeDefPath == "sbxc.arcadedef" || arcadeDefPath == "fghtjam.arcadedef" || arcadeDefPath == "superdbz.arcadedef")
+		{
+			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, 4);
+		}
+		else {
+			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, 1);
+		}
+
 		ArcadeUtils::BootArcadeMachine(m_virtualMachine, arcadeDefPath);
 		m_lastOpenCommand = LastOpenCommand(BootType::ARCADE, arcadeDefPath);
 		m_msgLabel->setText(QString("Started arcade machine '%1'.").arg(arcadeDefPath.filename().c_str()));
