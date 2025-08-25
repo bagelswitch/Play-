@@ -808,7 +808,7 @@ void CSys246::ProcessMemRequest(uint8* ram, uint32 infoPtr)
 			//0x40 -> Output Level (Voltage) of Video Signal
 			//0x20 -> Monitor Sync Frequency (1: 31Khz or 0: 15Khz)
 			//0x10 -> Video Sync Signal (1: Separate Sync or 0: Composite Sync)
-			if(!(this->m_gameId == "soulclb3"))
+			if(!(this->m_gameId == "soulclb3" || this->m_gameId == "motogp"))
 			{
 				ram[recvDataPtr + 0x30] = 0x20 | 0x40;
 			}
