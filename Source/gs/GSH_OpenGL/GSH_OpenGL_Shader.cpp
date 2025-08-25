@@ -118,7 +118,7 @@ Framework::OpenGl::CShader CGSH_OpenGL::GenerateVertexShader(const SHADERCAPS& c
 	{
 		shaderBuilder << "	v_fog = a_fog;" << std::endl;
 	}
-	shaderBuilder << "	gl_Position = g_projMatrix * vec4(a_position.x + 0.5, a_position.y + 0.5, 0, 1);" << std::endl;
+	shaderBuilder << "	gl_Position = g_projMatrix * vec4(a_position.x + 0.0, a_position.y + 0.0, 0, 1);" << std::endl;
 
 	shaderBuilder << "}" << std::endl;
 
