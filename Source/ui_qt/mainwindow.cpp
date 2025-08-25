@@ -453,12 +453,20 @@ void MainWindow::BootArcadeMachine(fs::path arcadeDefPath)
 	try
 	{
 		// not the right place for this . . .
-		if(arcadeDefPath == "wanganmd.arcadedef" || arcadeDefPath == "sbxc.arcadedef" || arcadeDefPath == "fghtjam.arcadedef" || arcadeDefPath == "superdbz.arcadedef")
+		std::map<std::string, int> ogl_scale_factors;
+		ogl_scale_factors["wanganmd"] = 4; // works at all scaling factors
+		ogl_scale_factors["superdbz"] = 4; // works at all scaling factors
+		ogl_scale_factors["fghtjam"] = 2; // scale factor 2 fixes mis-aligned character sprite segments
+		ogl_scale_factors["sbxc"] = 1; // scale factor 1 fixes mis-aligned first column in opening video
+		ogl_scale_factors["tekken51"] = 1; // scale factor 1 fixes vertical black lines
+		ogl_scale_factors["default"] = 1;
+
+		if(ogl_scale_factors.count(arcadeDefPath.stem().string()))
 		{
-			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, 4);
+			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, ogl_scale_factors[arcadeDefPath.stem().string()]);
 		}
 		else {
-			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, 1);
+			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, ogl_scale_factors["default"]);
 		}
 
 		ArcadeUtils::BootArcadeMachine(m_virtualMachine, arcadeDefPath);
