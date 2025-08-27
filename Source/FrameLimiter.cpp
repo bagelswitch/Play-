@@ -4,10 +4,14 @@
 
 CFrameLimiter::CFrameLimiter()
 {
+	timeBeginPeriod(1);
+	m_timer = CreateWaitableTimer(NULL, TRUE, NULL);
 }
 
 CFrameLimiter::~CFrameLimiter()
 {
+	CloseHandle(m_timer);
+	timeEndPeriod(1);
 }
 
 void CFrameLimiter::BeginFrame()
@@ -24,12 +28,15 @@ void CFrameLimiter::EndFrame()
 	auto currentFrameTime = std::chrono::high_resolution_clock::now();
 	auto frameDuration = std::chrono::duration_cast<std::chrono::microseconds>(currentFrameTime - m_lastFrameTime);
 
-	auto delay = ((m_minFrameDuration - frameDuration) / 1000) * 1000;
-
-	if(delay > std::chrono::microseconds(0))
+	auto delay = m_minFrameDuration - frameDuration;
+	if(delay > std::chrono::microseconds(1000))
 	{
-		std::this_thread::sleep_for(delay);
+		LARGE_INTEGER ft = {};
+		ft.QuadPart = -static_cast<int64>(delay.count() * 10);
+		SetWaitableTimer(m_timer, &ft, 0, NULL, NULL, 0);
+		WaitForSingleObject(m_timer, INFINITE);
 	}
+
 	m_frameStarted = false;
 }
 
