@@ -224,8 +224,50 @@ private:
 		GLuint m_texture;
 		uint32 m_contents[256];
 	};
-	typedef std::shared_ptr<CPalette> PalettePtr;
-	typedef std::list<PalettePtr> PaletteList;
+
+    struct MPaletteKey
+	{
+		MPaletteKey();
+
+		bool m_live;
+		bool m_isIDTEX4;
+		uint32 m_cpsm;
+		uint32 m_csa;
+
+		bool operator==(const MPaletteKey& other) const
+		{
+			return (
+				(m_live == other.m_live && m_isIDTEX4 == other.m_isIDTEX4 && m_cpsm == other.m_cpsm && m_csa == other.m_csa)
+			);
+		}
+	};
+
+	struct M2Palette
+	{
+		void Free();
+
+		bool m_live;
+		bool m_isIDTEX4;
+		uint32 m_cpsm;
+		uint32 m_csa;
+		GLuint m_texture;
+	};
+
+	struct MPaletteHasher
+	{
+		std::size_t operator()(const MPaletteKey& k) const
+		{
+			using std::hash;
+			using std::size_t;
+
+			std::size_t res = ((uint64)k.m_live) << 24 + ((uint64)k.m_isIDTEX4) << 16 + k.m_cpsm << 8 + k.m_csa;
+
+			return res;
+		}
+	};
+
+	typedef std::unordered_map<MPaletteKey, GLuint, MPaletteHasher> PaletteMap;
+	typedef std::unordered_map<uint64, M2Palette> PaletteMap2;
 
 	class CFramebuffer
 	{
@@ -410,6 +452,11 @@ private:
 	void PalCache_Insert(const TEX0&, const uint32*, GLuint);
 	void PalCache_Invalidate(uint32);
 
+	GLuint PalCache_Search_Map(const TEX0&);
+	GLuint PalCache_Search_Map(unsigned int, const uint32*);
+	void PalCache_Insert_Map(const TEX0&, const uint32*, GLuint);
+	void PalCache_Insert_Map(bool isIDTEX4, uint32 cpsm, uint32 csa, GLuint textureHandle);
+
 	void PopulateFramebuffer(const FramebufferPtr&);
 	void CommitFramebufferDirtyPages(const FramebufferPtr&, unsigned int, unsigned int);
 	void ResolveFramebufferMultisample(const FramebufferPtr&, uint32);
@@ -428,7 +475,9 @@ private:
 	GLint m_copyToFbSrcSizeUniform = -1;
 
 	TextureCache m_textureCache;
-	PaletteList m_paletteCache;
+	PaletteMap m_paletteCacheMap;
+	PaletteMap2 m_paletteCacheMap2;
+	MPaletteHasher m_paletteHasher;
 	FramebufferList m_framebuffers;
 	DepthbufferList m_depthbuffers;
 
