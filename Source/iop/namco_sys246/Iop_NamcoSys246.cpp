@@ -592,8 +592,8 @@ void CSys246::SetAxisState(unsigned int padNumber, PS2::CControllerInfo::BUTTON 
 	switch(button)
 	{
         case PS2::CControllerInfo::BUTTON::ANALOG_LEFT_X:
-            //if(axisValue >= 0 || axisValue < 128) m_jvsWheel = axisValue + 128;
-            //if(axisValue > 128 || axisValue < 256) m_jvsWheel = axisValue - 128;
+            //if(axisValue >= 0 && axisValue < 128) m_jvsWheel = axisValue + 128;
+            //if(axisValue >= 128 && axisValue < 256) m_jvsWheel = axisValue - 128;
             m_jvsWheel = axisValue;
             break;
         case PS2::CControllerInfo::BUTTON::ANALOG_LEFT_Y:
@@ -808,7 +808,7 @@ void CSys246::ProcessMemRequest(uint8* ram, uint32 infoPtr)
 			//0x40 -> Output Level (Voltage) of Video Signal
 			//0x20 -> Monitor Sync Frequency (1: 31Khz or 0: 15Khz)
 			//0x10 -> Video Sync Signal (1: Separate Sync or 0: Composite Sync)
-			if(!(this->m_gameId == "soulclb3" || this->m_gameId == "motogp"))
+			if(!(this->m_gameId == "soulclb3"))
 			{
 				ram[recvDataPtr + 0x30] = 0x20 | 0x40;
 			}
