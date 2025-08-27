@@ -254,7 +254,7 @@ CGSH_OpenGL::TEXTURE_INFO CGSH_OpenGL::PrepareTexture(const TEX0& tex0)
 
 GLuint CGSH_OpenGL::PreparePalette(const TEX0& tex0)
 {
-	GLuint textureHandle = PalCache_Search(tex0);
+	GLuint textureHandle = PalCache_Search_Map(tex0);
 	if(textureHandle != 0)
 	{
 		return textureHandle;
@@ -264,7 +264,7 @@ GLuint CGSH_OpenGL::PreparePalette(const TEX0& tex0)
 	MakeLinearCLUT(tex0, convertedClut);
 
 	unsigned int entryCount = CGsPixelFormats::IsPsmIDTEX4(tex0.nPsm) ? 16 : 256;
-	textureHandle = PalCache_Search(entryCount, convertedClut.data());
+	textureHandle = PalCache_Search_Map(entryCount, convertedClut.data());
 	if(textureHandle != 0)
 	{
 		return textureHandle;
@@ -274,7 +274,7 @@ GLuint CGSH_OpenGL::PreparePalette(const TEX0& tex0)
 	glBindTexture(GL_TEXTURE_2D, textureHandle);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, entryCount, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, convertedClut.data());
 
-	PalCache_Insert(tex0, convertedClut.data(), textureHandle);
+	PalCache_Insert_Map(tex0, convertedClut.data(), textureHandle);
 
 	return textureHandle;
 }
@@ -696,7 +696,36 @@ CGSH_OpenGL::CPalette::~CPalette()
 	Free();
 }
 
+CGSH_OpenGL::MPaletteKey::MPaletteKey()
+    : m_live(false)
+    , m_isIDTEX4(false)
+    , m_cpsm(0)
+    , m_csa(0)
+{
+}
+
+// Function to compute a simple additive checksum for a memory range
+static std::size_t calculateSimpleChecksum(const uint32_t* data, uint32 size)
+{
+	std::size_t checksum = 0;
+	for(size_t i = 0; i < size; ++i)
+	{
+		checksum += data[i];
+	}
+	return checksum;
+}
+
 void CGSH_OpenGL::CPalette::Free()
+{
+	if(m_texture != 0)
+	{
+		glDeleteTextures(1, &m_texture);
+		m_texture = 0;
+		m_live = false;
+	}
+}
+
+void CGSH_OpenGL::M2Palette::Free()
 {
 	if(m_texture != 0)
 	{
@@ -717,74 +746,113 @@ void CGSH_OpenGL::CPalette::Invalidate(uint32 csa)
 // Palette Caching
 /////////////////////////////////////////////////////////////
 
-GLuint CGSH_OpenGL::PalCache_Search(const TEX0& tex0)
+GLuint CGSH_OpenGL::PalCache_Search_Map(const TEX0& tex0)
 {
-	for(auto paletteIterator(m_paletteCache.begin());
-	    paletteIterator != m_paletteCache.end(); paletteIterator++)
-	{
-		auto palette = *paletteIterator;
-		if(!palette->m_live) continue;
-		if(CGsPixelFormats::IsPsmIDTEX4(tex0.nPsm) != palette->m_isIDTEX4) continue;
-		if(tex0.nCPSM != palette->m_cpsm) continue;
-		if(tex0.nCSA != palette->m_csa) continue;
-		m_paletteCache.erase(paletteIterator);
-		m_paletteCache.push_front(palette);
-		return palette->m_texture;
-	}
+	auto key = new CGSH_OpenGL::MPaletteKey();
+	key->m_live = true;
+	key->m_isIDTEX4 = CGsPixelFormats::IsPsmIDTEX4(tex0.nPsm);
+	key->m_cpsm = tex0.nCPSM;
+	key->m_csa = tex0.nCSA;
 
-	return 0;
+	
+	if(m_paletteCacheMap.count(*key) == 1)
+	{
+		auto value = m_paletteCacheMap[*key];
+		return value;
+	}
+	else {
+		return 0;
+	}
 }
 
-GLuint CGSH_OpenGL::PalCache_Search(unsigned int entryCount, const uint32* contents)
+GLuint CGSH_OpenGL::PalCache_Search_Map(unsigned int entryCount, const uint32* contents)
 {
-	for(auto paletteIterator(m_paletteCache.begin());
-	    paletteIterator != m_paletteCache.end(); paletteIterator++)
-	{
-		auto palette = *paletteIterator;
+	auto key = calculateSimpleChecksum(contents, entryCount);
 
-		if(palette->m_texture == 0) continue;
-
-		unsigned int palEntryCount = palette->m_isIDTEX4 ? 16 : 256;
-		if(palEntryCount != entryCount) continue;
-
-		if(memcmp(contents, palette->m_contents, sizeof(uint32) * entryCount) != 0) continue;
-
-		palette->m_live = true;
-
-		m_paletteCache.erase(paletteIterator);
-		m_paletteCache.push_front(palette);
-		return palette->m_texture;
+	if(m_paletteCacheMap2.count(key) == 1) {
+		auto value = m_paletteCacheMap2[key];
+		PalCache_Insert_Map(value.m_isIDTEX4, value.m_cpsm, value.m_csa, value.m_texture);
+		return value.m_texture;
 	}
-
-	return 0;
+	else {
+		return 0;
+	}
 }
 
-void CGSH_OpenGL::PalCache_Insert(const TEX0& tex0, const uint32* contents, GLuint textureHandle)
+void CGSH_OpenGL::PalCache_Insert_Map(bool isIDTEX4, uint32 cpsm, uint32 csa, GLuint textureHandle)
 {
-	auto texture = *m_paletteCache.rbegin();
-	texture->Free();
+	auto key = new CGSH_OpenGL::MPaletteKey();
 
-	unsigned int entryCount = CGsPixelFormats::IsPsmIDTEX4(tex0.nPsm) ? 16 : 256;
+	key->m_isIDTEX4 = isIDTEX4;
+	key->m_cpsm = cpsm;
+	key->m_csa = csa;
+	key->m_live = true;
 
-	texture->m_isIDTEX4 = CGsPixelFormats::IsPsmIDTEX4(tex0.nPsm);
-	texture->m_cpsm = tex0.nCPSM;
-	texture->m_csa = tex0.nCSA;
-	texture->m_texture = textureHandle;
-	texture->m_live = true;
-	memcpy(texture->m_contents, contents, entryCount * sizeof(uint32));
+	if(m_paletteCacheMap.count(*key) == 1)
+	{
+		m_paletteCacheMap[*key] = textureHandle;
+	}
+	else
+	{
+		m_paletteCacheMap.insert(std::make_pair(*key, textureHandle));
+	}
+}
 
-	m_paletteCache.pop_back();
-	m_paletteCache.push_front(texture);
+void CGSH_OpenGL::PalCache_Insert_Map(const TEX0& tex0, const uint32* contents, GLuint textureHandle)
+{
+	auto key = new CGSH_OpenGL::MPaletteKey();
+
+	key->m_isIDTEX4 = CGsPixelFormats::IsPsmIDTEX4(tex0.nPsm);
+	key->m_cpsm = tex0.nCPSM;
+	key->m_csa = tex0.nCSA;
+	key->m_live = true;
+
+	if(m_paletteCacheMap.count(*key) == 1)
+	{
+		m_paletteCacheMap.erase(*key);
+	}
+	m_paletteCacheMap.insert(std::make_pair(*key, textureHandle));
+	
+	unsigned int entryCount = key->m_isIDTEX4 ? 16 : 256;
+	auto key2 = calculateSimpleChecksum(contents, entryCount);
+	auto value = new CGSH_OpenGL::M2Palette();
+	value->m_isIDTEX4 = key->m_isIDTEX4;
+	value->m_cpsm = tex0.nCPSM;
+	value->m_csa = tex0.nCSA;
+	value->m_live = true;
+	value->m_texture = textureHandle;
+
+	if(m_paletteCacheMap2.count(key2) == 1)
+	{
+		m_paletteCacheMap2[key2] = *value;
+	}
+	else
+	{
+		m_paletteCacheMap2.insert(std::make_pair(key2, *value));
+	}
 }
 
 void CGSH_OpenGL::PalCache_Invalidate(uint32 csa)
 {
-	std::for_each(std::begin(m_paletteCache), std::end(m_paletteCache),
-	              [csa](PalettePtr& palette) { palette->Invalidate(csa); });
+	m_paletteCacheMap.clear();
 }
 
 void CGSH_OpenGL::PalCache_Flush()
 {
-	std::for_each(std::begin(m_paletteCache), std::end(m_paletteCache),
-	              [](PalettePtr& palette) { palette->Free(); });
+	for(auto it = m_paletteCacheMap.cbegin(); it != m_paletteCacheMap.cend() /* not hoisted */; /* no increment */)
+	{
+		auto texture = it->second;
+		if(texture != 0)
+		{
+			glDeleteTextures(1, &texture);
+		}
+		m_paletteCacheMap.erase(it++);
+	}
+
+	for(auto it = m_paletteCacheMap2.cbegin(); it != m_paletteCacheMap2.cend() /* not hoisted */; /* no increment */)
+	{
+		M2Palette value = it->second;
+		value.Free();
+		m_paletteCacheMap2.erase(it++);
+	}
 }

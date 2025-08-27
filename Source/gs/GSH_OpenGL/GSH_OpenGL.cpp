@@ -80,10 +80,6 @@ void CGSH_OpenGL::InitializeImpl()
 
 	m_nVtxCount = 0;
 
-	for(unsigned int i = 0; i < MAX_PALETTE_CACHE; i++)
-	{
-		m_paletteCache.push_back(PalettePtr(new CPalette()));
-	}
 
 	m_renderState.isValid = false;
 	m_validGlState = 0;
@@ -93,7 +89,8 @@ void CGSH_OpenGL::ReleaseImpl()
 {
 	ResetImpl();
 
-	m_paletteCache.clear();
+	m_paletteCacheMap.clear();
+	m_paletteCacheMap2.clear();
 	m_shaders.clear();
 	m_presentProgram.reset();
 	m_presentVertexBuffer.Reset();
