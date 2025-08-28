@@ -1299,6 +1299,8 @@ uint32 CGSHandler::GetCrtFrameRate() const
 		return 60;
 	case CRT_MODE_PAL:
 		return 50;
+	case CRT_MODE_VGA_640_75:
+		return 60;
 	}
 }
 
@@ -1313,6 +1315,8 @@ uint32 CGSHandler::GetCrtHSyncFrequency() const
 		return PS2::GS_NTSC_HSYNC_FREQ;
 	case CRT_MODE_PAL:
 		return PS2::GS_PAL_HSYNC_FREQ;
+	case CRT_MODE_VGA_640_75:
+		return PS2::GS_VGA_HSYNC_FREQ;
 	}
 }
 

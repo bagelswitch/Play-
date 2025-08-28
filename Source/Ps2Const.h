@@ -31,6 +31,7 @@ namespace PS2
 
 	enum
 	{
+		GS_VGA_HSYNC_FREQ = 31468,
 		GS_NTSC_HSYNC_FREQ = 15734,
 		GS_PAL_HSYNC_FREQ = 15625
 	};
