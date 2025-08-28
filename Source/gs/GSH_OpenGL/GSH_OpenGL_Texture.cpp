@@ -788,14 +788,7 @@ void CGSH_OpenGL::PalCache_Insert_Map(bool isIDTEX4, uint32 cpsm, uint32 csa, GL
 	key->m_csa = csa;
 	key->m_live = true;
 
-	if(m_paletteCacheMap.count(*key) == 1)
-	{
-		m_paletteCacheMap[*key] = textureHandle;
-	}
-	else
-	{
-		m_paletteCacheMap.insert(std::make_pair(*key, textureHandle));
-	}
+	m_paletteCacheMap[*key] = textureHandle;
 }
 
 void CGSH_OpenGL::PalCache_Insert_Map(const TEX0& tex0, const uint32* contents, GLuint textureHandle)
@@ -807,11 +800,7 @@ void CGSH_OpenGL::PalCache_Insert_Map(const TEX0& tex0, const uint32* contents, 
 	key->m_csa = tex0.nCSA;
 	key->m_live = true;
 
-	if(m_paletteCacheMap.count(*key) == 1)
-	{
-		m_paletteCacheMap.erase(*key);
-	}
-	m_paletteCacheMap.insert(std::make_pair(*key, textureHandle));
+	m_paletteCacheMap[*key] = textureHandle;
 	
 	unsigned int entryCount = key->m_isIDTEX4 ? 16 : 256;
 	auto key2 = calculateSimpleChecksum(contents, entryCount);
@@ -822,14 +811,7 @@ void CGSH_OpenGL::PalCache_Insert_Map(const TEX0& tex0, const uint32* contents, 
 	value->m_live = true;
 	value->m_texture = textureHandle;
 
-	if(m_paletteCacheMap2.count(key2) == 1)
-	{
-		m_paletteCacheMap2[key2] = *value;
-	}
-	else
-	{
-		m_paletteCacheMap2.insert(std::make_pair(key2, *value));
-	}
+	m_paletteCacheMap2[key2] = *value;
 }
 
 void CGSH_OpenGL::PalCache_Invalidate(uint32 csa)
