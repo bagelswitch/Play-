@@ -21,17 +21,14 @@ public:
 private:
 	typedef std::chrono::high_resolution_clock::time_point TimePoint;
 
-	enum
-	{
-		MAX_FRAMETIMES = 4,
-	};
-
-	std::chrono::microseconds m_frameTimes[MAX_FRAMETIMES];
-	uint32 m_frameTimeIndex = 0;
-
+	std::chrono::microseconds m_graceUsec = std::chrono::microseconds(2000);
 	std::chrono::microseconds m_minFrameDuration = std::chrono::microseconds(0);
 	bool m_frameStarted = false;
 	TimePoint m_lastFrameTime;
+	std::chrono::microseconds m_lastFrameDuration;
+	boolean m_delay = false;
+	boolean m_enabled = false;
+	boolean m_active = false;
 
 #ifdef _WIN32
 	HANDLE m_timer = 0;
