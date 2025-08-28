@@ -45,6 +45,10 @@ void CFrameLimiter::EndFrame()
 
 void CFrameLimiter::SetFrameRate(uint32 fps)
 {
+	if (fps == 60) {
+		fps = 62;
+	}
+
 	if(fps == 0)
 	{
 		m_minFrameDuration = std::chrono::microseconds(0);
