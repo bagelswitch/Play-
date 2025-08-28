@@ -754,13 +754,12 @@ GLuint CGSH_OpenGL::PalCache_Search_Map(const TEX0& tex0)
 	key->m_cpsm = tex0.nCPSM;
 	key->m_csa = tex0.nCSA;
 
-	
-	if(m_paletteCacheMap.count(*key) == 1)
+	auto it = m_paletteCacheMap.find(*key);
+	if(it != m_paletteCacheMap.end())
 	{
-		auto value = m_paletteCacheMap[*key];
-		return value;
+		return it->second;
 	}
-	else {
+    else {
 		return 0;
 	}
 }
@@ -769,8 +768,10 @@ GLuint CGSH_OpenGL::PalCache_Search_Map(unsigned int entryCount, const uint32* c
 {
 	auto key = calculateSimpleChecksum(contents, entryCount);
 
-	if(m_paletteCacheMap2.count(key) == 1) {
-		auto value = m_paletteCacheMap2[key];
+	auto it = m_paletteCacheMap2.find(key);
+	if(it != m_paletteCacheMap2.end())
+	{
+		auto value = it->second;
 		PalCache_Insert_Map(value.m_isIDTEX4, value.m_cpsm, value.m_csa, value.m_texture);
 		return value.m_texture;
 	}
