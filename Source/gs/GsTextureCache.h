@@ -28,44 +28,25 @@ public:
 		TextureHandleType m_textureHandle;
 	};
 
-	enum
-	{
-		MAX_TEXTURE_CACHE = 256,
-	};
-
-	CGsTextureCache()
-	{
-		for(unsigned int i = 0; i < MAX_TEXTURE_CACHE; i++)
-		{
-			m_textureCache.push_back(std::make_shared<CTexture>());
-		}
-	}
-
 	CTexture* Search(const CGSHandler::TEX0& tex0)
 	{
-		uint64 maskedTex0 = static_cast<uint64>(tex0) & TEX0_CLUTINFO_MASK;
+		uint64 key = static_cast<uint64>(tex0) & TEX0_CLUTINFO_MASK;
 
-		for(auto textureIterator(m_textureCache.begin());
-		    textureIterator != m_textureCache.end(); textureIterator++)
+		auto it = m_textureMap.find(key);
+		if(it != m_textureMap.end())
 		{
-			auto texture = *textureIterator;
-			if(!texture->m_live) continue;
-			if(maskedTex0 != texture->m_tex0) continue;
-			m_textureCache.erase(textureIterator);
-			m_textureCache.push_front(texture);
-			return texture.get();
+			auto result = it->second;
+			return result.get();
 		}
-
-		return nullptr;
+		else {
+			return nullptr;
+		}
 	}
 
 	void Insert(const CGSHandler::TEX0& tex0, TextureHandleType textureHandle)
 	{
-		auto texture = *m_textureCache.rbegin();
-		texture->Reset();
+		uint64 key = static_cast<uint64>(tex0) & TEX0_CLUTINFO_MASK;
 
-		// DBZ Budokai Tenkaichi 2 and 3 use invalid (empty) buffer sizes.
-		// Account for that, by assuming image width.
 		uint32 bufSize = tex0.GetBufWidth();
 		if(bufSize == 0)
 		{
@@ -73,31 +54,34 @@ public:
 		}
 		uint32 texHeight = std::min<uint32>(tex0.GetHeight(), CGSHandler::TEX0_MAX_TEXTURE_SIZE);
 
+		auto texture = std::make_shared<CTexture>();
 		texture->m_cachedArea.SetArea(tex0.nPsm, tex0.GetBufPtr(), bufSize, texHeight);
-
-		texture->m_tex0 = static_cast<uint64>(tex0) & TEX0_CLUTINFO_MASK;
+		texture->m_tex0 = key;
 		texture->m_textureHandle = std::move(textureHandle);
 		texture->m_live = true;
 
-		m_textureCache.pop_back();
-		m_textureCache.push_front(texture);
+		m_textureMap[key] = texture;
 	}
 
 	void InvalidateRange(uint32 start, uint32 size)
 	{
-		std::for_each(std::begin(m_textureCache), std::end(m_textureCache),
-		              [start, size](TexturePtr& texture) { if(texture->m_live) { texture->m_cachedArea.Invalidate(start, size); } });
+		for(auto it = m_textureMap.cbegin(); it != m_textureMap.cend(); it++)
+		{
+			it->second->m_cachedArea.Invalidate(start, size);
+		}
 	}
 
 	void Flush()
 	{
-		std::for_each(std::begin(m_textureCache), std::end(m_textureCache),
-		              [](TexturePtr& texture) { texture->Reset(); });
+		for(auto it = m_textureMap.cbegin(); it != m_textureMap.cend() /* not hoisted */; /* no increment */)
+		{
+			it->second->Reset();
+			m_textureMap.erase(it++);
+		}
 	}
 
 private:
 	typedef std::shared_ptr<CTexture> TexturePtr;
-	typedef std::list<TexturePtr> TextureList;
-
-	TextureList m_textureCache;
+	typedef std::unordered_map<uint64, TexturePtr> TextureMap;
+	TextureMap m_textureMap;
 };
