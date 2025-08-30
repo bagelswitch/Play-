@@ -76,6 +76,10 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+	auto hCurrentThread = GetCurrentThread();
+	BOOL success = SetThreadPriority(hCurrentThread, THREAD_PRIORITY_HIGHEST);
+	assert(success);
+
 	ArcadeUtils::RegisterArcadeMachines();
 
 	ui->setupUi(this);
