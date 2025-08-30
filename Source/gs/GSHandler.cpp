@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <functional>
+#include <windows.h>
 #include "AppConfig.h"
 #include "Log.h"
 #include "../states/MemoryStateFile.h"
@@ -776,9 +777,9 @@ void CGSHandler::WriteRegisterImpl(uint8 nRegister, uint64 nData)
 			{
 				uint32 levelSize = (width * height * pixelSize) / 8;
 				bufAddr = bufAddr + levelSize;
-				bufWidth = std::max(bufWidth >> 1, 1U);
-				width = std::max(width >> 1, 1U);
-				height = std::max(width >> 1, 1U);
+				bufWidth = max(bufWidth >> 1, 1U);
+				width = max(width >> 1, 1U);
+				height = max(width >> 1, 1U);
 				uint32 tbp = (bufAddr / 256) & 0x3FFF;
 				uint32 tbw = bufWidth & 0x3F;
 				miptbp[i] = tbp | (tbw << 14);
@@ -2168,6 +2169,10 @@ void CGSHandler::WriteToDelayedRegister(uint32 address, uint32 value, DELAYED_RE
 
 void CGSHandler::ThreadProc()
 {
+	auto hCurrentThread = GetCurrentThread();
+	BOOL success = SetThreadPriority(hCurrentThread, THREAD_PRIORITY_HIGHEST);
+	assert(success);
+
 	while(!m_threadDone)
 	{
 		m_mailBox.WaitForCall();

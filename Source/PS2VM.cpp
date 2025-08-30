@@ -888,6 +888,10 @@ void CPS2VM::OnCrtModeChange()
 
 void CPS2VM::EmuThread()
 {
+	auto hCurrentThread = GetCurrentThread();
+	BOOL success = SetThreadPriority(hCurrentThread, THREAD_PRIORITY_HIGHEST);
+	assert(success);
+
 	CreateVM();
 	fesetround(FE_TOWARDZERO);
 	FpUtils::SetDenormalHandlingMode();
