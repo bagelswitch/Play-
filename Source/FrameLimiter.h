@@ -23,7 +23,7 @@ private:
 
 	enum
 	{
-		MAX_FRAMETIMES = 4,
+		MAX_FRAMETIMES = 2,
 	};
 
 	std::chrono::microseconds m_frameTimes[MAX_FRAMETIMES];

@@ -33,24 +33,26 @@ void CFrameLimiter::EndFrame()
 {
 	assert(m_frameStarted);
 
-	//Add current frame time to array
-	{
-		auto currentFrameTime = std::chrono::high_resolution_clock::now();
-		auto frameDuration = std::chrono::duration_cast<std::chrono::microseconds>(currentFrameTime - m_lastFrameTime);
-		m_frameTimes[m_frameTimeIndex++] = frameDuration;
-		m_frameTimeIndex %= MAX_FRAMETIMES;
-	}
+	auto currentFrameTime = std::chrono::high_resolution_clock::now();
+	auto frameDuration = std::chrono::duration_cast<std::chrono::microseconds>(currentFrameTime - m_lastFrameTime);
 
-	//Compute average frame time
-	std::chrono::microseconds averageFrameTime = std::chrono::microseconds(0);
-	for(uint32 i = 0; i < MAX_FRAMETIMES; i++)
+	if(frameDuration < m_minFrameDuration)
 	{
-		averageFrameTime += m_frameTimes[i];
-	}
-	averageFrameTime /= MAX_FRAMETIMES;
 
-	if(averageFrameTime < m_minFrameDuration)
-	{
+		//Add current frame time to array
+		{
+			m_frameTimes[m_frameTimeIndex++] = frameDuration;
+			m_frameTimeIndex %= MAX_FRAMETIMES;
+		}
+
+		//Compute average frame time
+		std::chrono::microseconds averageFrameTime = std::chrono::microseconds(0);
+		for(uint32 i = 0; i < MAX_FRAMETIMES; i++)
+		{
+			averageFrameTime += m_frameTimes[i];
+		}
+		averageFrameTime /= MAX_FRAMETIMES;
+
 		auto delay = m_minFrameDuration - averageFrameTime;
 #ifdef _WIN32
 		{
