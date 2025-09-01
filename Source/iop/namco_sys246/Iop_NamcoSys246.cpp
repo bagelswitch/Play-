@@ -131,6 +131,7 @@ void CSys246::Invoke(CMIPS& context, unsigned int functionId)
 
 void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 {
+	/*
 	// Add CPU throttling to prevent 100% usage
 	static auto lastProcessTime = std::chrono::steady_clock::now();
 	auto currentTime = std::chrono::steady_clock::now();
@@ -142,6 +143,7 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 		std::this_thread::sleep_for(std::chrono::microseconds(100 - timeDiff.count()));
 	}
 	lastProcessTime = std::chrono::steady_clock::now();
+	*/
 
 	assert(*input == JVS_SYNC);
 	input++;
