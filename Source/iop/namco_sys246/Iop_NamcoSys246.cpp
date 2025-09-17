@@ -78,8 +78,8 @@ static const std::array<uint16, PS2::CControllerInfo::MAX_BUTTONS> g_defaultJvsS
 	0x0000, //DPAD_DOWN,
 	0x0000, //DPAD_LEFT,
 	0x0000, //DPAD_RIGHT,
-	0x0002, //SELECT,
-	0x0001, //START,
+	0x0000, //SELECT,
+	0x0000, //START,
 	0x0000, //SQUARE,
 	0x0000, //TRIANGLE,
 	0x0000, //CIRCLE,
@@ -87,9 +87,9 @@ static const std::array<uint16, PS2::CControllerInfo::MAX_BUTTONS> g_defaultJvsS
 	0x0000, //L1,
 	0x0000, //L2,
 	0x0000, //L3,
-	0x0000, //R1,
-	0x0000, //R2,
-	0x0000, //R3,
+	0x0001, //R1,
+	0x0001, //R2,
+	0x0001, //R3,
 };
 // clang-format on
 
