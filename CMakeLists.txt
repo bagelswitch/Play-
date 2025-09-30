@@ -50,6 +50,44 @@ endif()
 add_definitions(-DPLAY_VERSION="${PROJECT_Version}")
 set(PROJECT_LIBS)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    # Enable Link-Time Optimization
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT supported OUTPUT error)
+    
+    if(supported)
+				set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        message(STATUS "IPO/LTO enabled")
+    else()
+        message(STATUS "IPO/LTO not supported: <${error}>")
+    endif()
+
+    if(MSVC)
+        add_compile_options(
+            $<$<CONFIG:Release>:/arch:AVX2>
+            $<$<CONFIG:Release>:/Ox>
+            $<$<CONFIG:Release>:/Ob2>
+            $<$<CONFIG:Release>:/Oi>
+            $<$<CONFIG:Release>:/Ot>
+            $<$<CONFIG:Release>:/GT>
+            $<$<CONFIG:Release>:/GL>
+            $<$<CONFIG:Release>:/fp:fast>
+            $<$<CONFIG:Release>:/GS->
+            $<$<CONFIG:RelWithDebInfo>:/arch:AVX2>
+            $<$<CONFIG:RelWithDebInfo>:/Ox>
+            $<$<CONFIG:RelWithDebInfo>:/Ob2>
+            $<$<CONFIG:RelWithDebInfo>:/Oi>
+            $<$<CONFIG:RelWithDebInfo>:/Ot>
+            $<$<CONFIG:RelWithDebInfo>:/GT>
+            $<$<CONFIG:RelWithDebInfo>:/GL>
+            $<$<CONFIG:RelWithDebInfo>:/fp:fast>
+            $<$<CONFIG:RelWithDebInfo>:/GS->
+        )
+        add_link_options(/LTCG:INCREMENTAL)
+        message(STATUS "MSVC optimizations enabled globally")
+    endif()
+endif()
+
 include(PrecompiledHeader)
 
 if(BUILD_LIBRETRO_CORE)
