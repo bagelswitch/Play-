@@ -459,6 +459,8 @@ void MainWindow::BootArcadeMachine(fs::path arcadeDefPath)
 		ogl_scale_factors["fateulc"] = 4;  // works at all scaling factors
 		ogl_scale_factors["acedriv3"] = 4; // works at all scaling factors
 		ogl_scale_factors["soulclb3"] = 4; // works at all scaling factors
+		ogl_scale_factors["batlgr38"] = 4; // works at all scaling factors
+		ogl_scale_factors["batlgr3t"] = 4; // works at all scaling factors
 		ogl_scale_factors["fghtjam"] = 2; // scale factor 2 fixes mis-aligned character sprite segments
 		ogl_scale_factors["sbxc"] = 1; // scale factor 1 fixes mis-aligned first column in opening video
 		ogl_scale_factors["tekken51"] = 1; // scale factor 1 fixes mis-colored textures
