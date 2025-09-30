@@ -83,7 +83,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebI
             $<$<CONFIG:RelWithDebInfo>:/fp:fast>
             $<$<CONFIG:RelWithDebInfo>:/GS->
         )
-        add_link_options(/LTCG:INCREMENTAL)
+        add_link_options(/LTCG)
         message(STATUS "MSVC optimizations enabled globally")
     endif()
 endif()
