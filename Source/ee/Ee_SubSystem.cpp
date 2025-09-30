@@ -273,7 +273,7 @@ int CSubSystem::ExecuteCpu(int quota)
 			break;
 		case MIPS_EXCEPTION_IDLE:
 		{
-			m_isIdle = true;
+			m_isIdle = false;
 			m_EE.m_State.nHasException = MIPS_EXCEPTION_NONE;
 		}
 		break;
