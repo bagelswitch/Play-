@@ -677,8 +677,8 @@ void CGSH_OpenGL::SetRenderingContext(uint64 primReg)
 	// Account for the fact that PS2 assumes the pixel center at the bottom left,
 	// but OpenGL at the center of the screen. On even resolutions this causes a slight
 	// discrepancy.
-	m_nPrimOfsX -= 0.5f;
-	m_nPrimOfsY -= 0.5f;
+	//m_nPrimOfsX -= 0.5f;
+	//m_nPrimOfsY -= 0.5f;
 
 	CHECKGLERROR();
 
