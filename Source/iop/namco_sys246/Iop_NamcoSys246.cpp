@@ -474,52 +474,23 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 		// GPIO output
 		case JVS_CMD_GPIOW:
 		{
-			if(CSys246::m_outputCallbackFunction != nullptr)
-			{
-				uint16 gpindex = (*input++);
-				uint16 gpvalue = (*input++);
-
-				// gpindex 0x01, gpvalue 0xC0 indicates P1 recoil triggered
-				int p1Recoil = 0;
-				if(gpindex == 0x01 && gpvalue >= 0x80)
-				{
-					p1Recoil = 1;
-				}
-				else
-				{
-					p1Recoil = 0;
-				}
-				if(p1Recoil != m_p1RecoilLast)
-				{
-					m_p1RecoilLast = p1Recoil;
-					CSys246::m_outputCallbackFunction(p1Recoil);
-				}
-			}
-		}
-		break;
-		// GPIO output
-		case JVS_CMD_GPIOW:
-		{
 			assert(inSize >= 2);
-			if(CSys246::m_outputCallbackFunction != nullptr)
+			uint16 bytecount = (*input++);
+			inSize--;
+
+			for(int i = 1; i <= bytecount; i++)
 			{
-				uint16 bytecount = (*input++);
+				uint16 gpvalue = (*input++);
 				inSize--;
 
-				for(int i = 1; i <= bytecount; i++)
+				if(CSys246::m_outputCallbackFunction != nullptr && i == 1)
 				{
-					uint16 gpvalue = (*input++);
-					inSize--;
-
-					if(i == 1)
+					// value1 0xC0 indicates P1 recoil triggered
+					int p1Recoil = (gpvalue >= 0x80) ? 1 : 0;
+					if(p1Recoil != m_p1RecoilLast)
 					{
-						// value1 0xC0 indicates P1 recoil triggered
-						int p1Recoil = (gpvalue >= 0x80) ? 1 : 0;
-						if(p1Recoil != m_p1RecoilLast)
-						{
-							m_p1RecoilLast = p1Recoil;
-							CSys246::m_outputCallbackFunction(p1Recoil);
-						}
+						m_p1RecoilLast = p1Recoil;
+						CSys246::m_outputCallbackFunction(p1Recoil);
 					}
 				}
 			}
