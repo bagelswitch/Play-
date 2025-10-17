@@ -1005,8 +1005,9 @@ void MainWindow::outputWindow_mouseMoveEvent(QMouseEvent* ev)
 		float mouseY = ev->y();
 		mouseX -= vpOfsX;
 		mouseY -= vpOfsY;
-		mouseX = std::clamp<float>(mouseX, 0, vpWidth);
-		mouseY = std::clamp<float>(mouseY, 0, vpHeight);
+		// clamping here prevents off-screen reload in Vampire Night
+		//mouseX = std::clamp<float>(mouseX, 0, vpWidth);
+		//mouseY = std::clamp<float>(mouseY, 0, vpHeight);
 		m_virtualMachine->ReportGunPosition(
 		    static_cast<float>(mouseX) / static_cast<float>(vpWidth),
 		    static_cast<float>(mouseY) / static_cast<float>(vpHeight));

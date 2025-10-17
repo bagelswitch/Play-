@@ -483,7 +483,7 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 				uint16 gpvalue = (*input++);
 				inSize--;
 
-				if(CSys246::m_outputCallbackFunction != nullptr && i == 1)
+				if(m_gameId != "vnight" && CSys246::m_outputCallbackFunction != nullptr && i == 1)
 				{
 					// value1 0xC0 indicates P1 recoil triggered
 					int p1Recoil = (gpvalue >= 0x80) ? 1 : 0;
@@ -573,6 +573,47 @@ void CSys246::SetButtonState(unsigned int padNumber, PS2::CControllerInfo::BUTTO
 				if(button == PS2::CControllerInfo::R1) m_jvsDrumChannels[JVS_DRUM_CHANNEL_1P_DR] = pressed ? drumPressValue << 6 : 0;
 				if(button == PS2::CControllerInfo::R2) m_jvsDrumChannels[JVS_DRUM_CHANNEL_1P_KR] = pressed ? drumPressValue << 6 : 0;
 			}
+			else if(m_jvsMode == JVS_MODE::LIGHTGUN && m_gameId == "vnight")
+			{
+				// We can "synthesize" recoil events in Vampire Night by counting on-screen shots
+				
+				int p1Recoil = m_p1RecoilLast;
+
+				// pointing the gun off-screen reloads
+				float rawX = (m_jvsScreenPosX - m_screenPosXform[1]) / m_screenPosXform[0];
+				float rawY = (m_jvsScreenPosY - m_screenPosXform[3]) / m_screenPosXform[2];
+				bool onScreen = rawX > 0.0 && rawX < 1.0 && rawY > 0.0 && rawY < 1.0;
+				if (!onScreen) {
+					m_onscreenShotCount = 0;
+				}
+
+				if (button == PS2::CControllerInfo::CIRCLE) {
+					if(pressed)
+					{
+						if(!m_pressedLast)
+						{
+							if(onScreen)
+							{
+								// on-screen shot
+								m_onscreenShotCount++;
+								if(m_onscreenShotCount <= MAX_ONSCREEN_SHOT)
+								{
+									p1Recoil = 1;
+								}
+							}
+						}
+					}
+					else {
+						p1Recoil = 0;
+					}
+					m_pressedLast = pressed;
+				}
+				if(CSys246::m_outputCallbackFunction != nullptr && p1Recoil != m_p1RecoilLast)
+				{
+					m_p1RecoilLast = p1Recoil;
+					CSys246::m_outputCallbackFunction(p1Recoil);
+				}
+			}
 		}
 		else if(padNumber == 1)
 		{
@@ -658,6 +699,12 @@ void CSys246::SetAxisState(unsigned int padNumber, PS2::CControllerInfo::BUTTON 
 
 void CSys246::SetScreenPosition(float x, float y)
 {
+	// Allows off-screen shot for reload in Vampire Night
+	if(y > 0.995) y = 1.1;
+	if(x > 0.995) x = 1.1;
+	if(y < 0.005) y = -0.1;
+	if(x < 0.005) x = -0.1;
+
 	m_jvsScreenPosX = static_cast<int16>((x * m_screenPosXform[0]) + m_screenPosXform[1]);
 	m_jvsScreenPosY = static_cast<int16>((y * m_screenPosXform[2]) + m_screenPosXform[3]);
 }

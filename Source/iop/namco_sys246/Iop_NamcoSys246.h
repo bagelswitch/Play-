@@ -164,6 +164,10 @@ namespace Iop
 
 			// track last recoil state to limit events
 			uint8 m_p1RecoilLast = 0;
+
+			bool m_pressedLast = false;
+			uint8 m_onscreenShotCount = 0;
+			const uint8 MAX_ONSCREEN_SHOT = 8;
 		};
 	}
 }
