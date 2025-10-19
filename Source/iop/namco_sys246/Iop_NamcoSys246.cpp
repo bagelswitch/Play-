@@ -10,6 +10,10 @@
 #include "iop/Iop_SifCmd.h"
 #include "iop/namco_sys246/Iop_NamcoAcRam.h"
 
+#ifdef _WIN32
+#include "output/OutputNetwork.h"
+#endif
+
 using namespace Iop;
 using namespace Iop::Namco;
 
@@ -93,13 +97,6 @@ static const std::array<uint16, PS2::CControllerInfo::MAX_BUTTONS> g_defaultJvsS
 	0x0001, //R3,
 };
 // clang-format on
-
-// Lightgun output callback to send window messages via main window
-std::function<void(int)> CSys246::m_outputCallbackFunction = nullptr;
-void CSys246::SetOutputCallback(std::function<void(int)> callback)
-{
-	CSys246::m_outputCallbackFunction = callback;
-}
 
 CSys246::CSys246(CSifMan& sifMan, CSifCmd& sifCmd, Namco::CAcRam& acRam, const std::string& gameId)
     : m_acRam(acRam)
@@ -475,6 +472,7 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 		case JVS_CMD_GPIOW:
 		{
 			assert(inSize >= 2);
+
 			uint16 bytecount = (*input++);
 			inSize--;
 
@@ -483,14 +481,16 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 				uint16 gpvalue = (*input++);
 				inSize--;
 
-				if(m_gameId != "vnight" && CSys246::m_outputCallbackFunction != nullptr && i == 1)
+				if(m_gameId != "vnight" && i == 1)
 				{
 					// value1 0xC0 indicates P1 recoil triggered
 					int p1Recoil = (gpvalue >= 0x80) ? 1 : 0;
 					if(p1Recoil != m_p1RecoilLast)
 					{
 						m_p1RecoilLast = p1Recoil;
-						CSys246::m_outputCallbackFunction(p1Recoil);
+#ifdef _WIN32
+						Output::OutputNetwork::SendRecoil(p1Recoil);
+#endif
 					}
 				}
 			}
@@ -608,10 +608,12 @@ void CSys246::SetButtonState(unsigned int padNumber, PS2::CControllerInfo::BUTTO
 					}
 					m_pressedLast = pressed;
 				}
-				if(CSys246::m_outputCallbackFunction != nullptr && p1Recoil != m_p1RecoilLast)
+				if(p1Recoil != m_p1RecoilLast)
 				{
 					m_p1RecoilLast = p1Recoil;
-					CSys246::m_outputCallbackFunction(p1Recoil);
+#ifdef _WIN32
+					Output::OutputNetwork::SendRecoil(p1Recoil);
+#endif
 				}
 			}
 		}
