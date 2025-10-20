@@ -625,7 +625,7 @@ void CSys246::SetButtonState(unsigned int padNumber, PS2::CControllerInfo::BUTTO
 				{
 					m_p1RecoilLast = p1Recoil;
 #ifdef _WIN32
-					Output::OutputNetwork::SendRecoil(p1Recoil);
+					MameCompatOutput::SendRecoil(p1Recoil);
 #endif
 				}
 			}
