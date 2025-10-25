@@ -10,10 +10,6 @@
 #include "iop/Iop_SifCmd.h"
 #include "iop/namco_sys246/Iop_NamcoAcRam.h"
 
-#ifdef _WIN32
-#include "iop/namco_sys246/MameCompatOutput.h"
-#endif
-
 using namespace Iop;
 using namespace Iop::Namco;
 
@@ -45,7 +41,7 @@ enum
 	JVS_CMD_RESET = 0xF0,
 	JVS_CMD_SETADDR = 0xF1,
 
-	JVS_CMD_GPIOW = 0x32,
+	JVS_CMD_GPIOW = 0x32, //Also OUTPUT1
 };
 
 // clang-format off
@@ -123,15 +119,7 @@ CSys246::CSys246(CSifMan& sifMan, CSifCmd& sifCmd, Namco::CAcRam& acRam, const s
 
 #ifdef _WIN32
 	// start recoil output server
-	MameCompatOutput::Start(gameId);
-#endif
-}
-
-CSys246::~CSys246()
-{
-#ifdef _WIN32
-	// stop recoil output server
-	MameCompatOutput::Stop();
+	m_mameCompatOutput = std::make_unique<MameCompatOutput>(gameId);
 #endif
 }
 
@@ -486,12 +474,14 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 		{
 			assert(inSize >= 2);
 
-			uint16 bytecount = (*input++);
+			uint8 bytecount = (*input++);
+			inWorkChecksum += bytecount;
 			inSize--;
 
 			for(int i = 1; i <= bytecount; i++)
 			{
-				uint16 gpvalue = (*input++);
+				uint8 gpvalue = (*input++);
+				inWorkChecksum += gpvalue;
 				inSize--;
 
 				if(m_gameId != "vnight" && i == 1)
@@ -502,11 +492,14 @@ void CSys246::ProcessJvsPacket(const uint8* input, uint8* output)
 					{
 						m_p1RecoilLast = p1Recoil;
 #ifdef _WIN32
-						MameCompatOutput::SendRecoil(p1Recoil);
+						m_mameCompatOutput->SendRecoil(p1Recoil);
 #endif
 					}
 				}
 			}
+
+			(*output++) = 0x01; //Command success
+			(*dstSize) += 1;
 		}
 		break;
 		default:
