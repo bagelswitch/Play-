@@ -707,33 +707,16 @@ void CSys246::SetAxisState(unsigned int padNumber, PS2::CControllerInfo::BUTTON 
 
 void CSys246::SetScreenPosition(float x, float y)
 {
-	bool offscreen = false;
-
 	// Allows off-screen shot for reload in Vampire Night
-	// and possibly fixes "multi-screen battle" events in TC4
-	if(y > 0.995)
-	{
-		y += m_offscreenOffset;
-		offscreen = true;
-	}
-	if(x > 0.995) {
-		x += m_offscreenOffset;
-		offscreen = true;
-	}
-	if(y < 0.005) {
-		y -= m_offscreenOffset;
-		offscreen = true;
-	}
-	if(x < 0.005) {
-		x -= m_offscreenOffset;
-		offscreen = true;
-	}
-
-	if (offscreen) {
-		m_offscreenOffset += 0.01;
+	if (m_gameId == "vnight") {
+		if(y > 0.995) y = 1.1;
+		if(x > 0.995) x = 1.1;
+		if(y < 0.005) y = -0.1;
+		if(x < 0.005) x = -0.1;
 	}
 	else {
-		m_offscreenOffset = 0.00;
+		std::clamp<float>(x, 0, 1);
+		std::clamp<float>(y, 0, 1);
 	}
 
 	m_jvsScreenPosX = static_cast<int16>((x * m_screenPosXform[0]) + m_screenPosXform[1]);
