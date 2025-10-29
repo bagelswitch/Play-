@@ -707,11 +707,34 @@ void CSys246::SetAxisState(unsigned int padNumber, PS2::CControllerInfo::BUTTON 
 
 void CSys246::SetScreenPosition(float x, float y)
 {
+	bool offscreen = false;
+
 	// Allows off-screen shot for reload in Vampire Night
-	if(y > 0.995) y = 1.1;
-	if(x > 0.995) x = 1.1;
-	if(y < 0.005) y = -0.1;
-	if(x < 0.005) x = -0.1;
+	// and possibly fixes "multi-screen battle" events in TC4
+	if(y > 0.995)
+	{
+		y += m_offscreenOffset;
+		offscreen = true;
+	}
+	if(x > 0.995) {
+		x += m_offscreenOffset;
+		offscreen = true;
+	}
+	if(y < 0.005) {
+		y -= m_offscreenOffset;
+		offscreen = true;
+	}
+	if(x < 0.005) {
+		x -= m_offscreenOffset;
+		offscreen = true;
+	}
+
+	if (offscreen) {
+		m_offscreenOffset += 0.01;
+	}
+	else {
+		m_offscreenOffset = 0.00;
+	}
 
 	m_jvsScreenPosX = static_cast<int16>((x * m_screenPosXform[0]) + m_screenPosXform[1]);
 	m_jvsScreenPosY = static_cast<int16>((y * m_screenPosXform[2]) + m_screenPosXform[3]);
