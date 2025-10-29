@@ -161,8 +161,6 @@ namespace Iop
 			std::queue<uint8> m_serialQueue;
 			bool m_bgStrReportWheelPos = false;
 
-			float m_offscreenOffset = 0.00;
-
 #ifdef _WIN32
 			// MAME-compatible network output listener
 			std::unique_ptr<MameCompatOutput> m_mameCompatOutput;
