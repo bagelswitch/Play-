@@ -220,6 +220,7 @@ namespace Iop
 		void SetReverbEnabled(bool);
 
 		void SetBaseSamplingRate(uint32);
+		void SetInputBypass(bool);
 		void SetDestinationSamplingRate(uint32);
 
 		bool GetIrqPending() const;
@@ -273,10 +274,6 @@ namespace Iop
 		void Render(int16*, unsigned int);
 
 		static bool g_reverbParamIsAddress[REVERB_PARAM_COUNT];
-
-		static uint32 m_spdifOutput;
-		static uint32 m_spdifMode;
-		static uint32 m_spdifMedia;
 
 	private:
 		enum
@@ -360,11 +357,12 @@ namespace Iop
 			void Reset();
 			void SetBaseSamplingRate(uint32);
 			void SetDestinationSamplingRate(uint32);
+			void SetSpdifBypass(bool);
 
 			bool CanReadSamples() const;
 
 			void FillBlock(const uint8*);
-			void GetSamples(int32[2], bool);
+			void GetSamples(int32[2]);
 
 		private:
 			void UpdateSampleStep();
@@ -373,6 +371,7 @@ namespace Iop
 			uint32 m_dstSamplingRate = 0;
 			uint32 m_srcSampleIdx = 0;
 			uint32 m_sampleStep = 0;
+			bool m_spdifBypass = false;
 			uint8 m_blockBuffer[SOUND_INPUT_DATA_SIZE];
 		};
 
