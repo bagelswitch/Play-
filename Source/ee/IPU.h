@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include <algorithm>
 #include <array>
 #include <functional>
@@ -14,6 +15,29 @@
 #include "zip/ZipArchiveReader.h"
 
 class CINTC;
+
+namespace Ee
+{
+	struct IPUFunctionCall
+	{
+		std::function<void()> callable;
+
+		IPUFunctionCall(std::function<void(uint32, uint32)> f, uint32 arg1, uint32 arg2)
+		{
+			callable = [f, arg1, arg2]() { f(arg1, arg2); };
+		}
+
+		IPUFunctionCall(std::function<void()> f)
+		{
+			callable = f;
+		}
+
+		void execute()
+		{
+			callable();
+		}
+	};
+}
 
 class CIPU
 {
@@ -49,6 +73,14 @@ public:
 	bool IsCommandDelayed() const;
 	bool HasPendingOUTFIFOData() const;
 	void FlushOUTFIFOData();
+
+	//
+	// Shared queue and synchronization primitives
+	bool m_ipuStopThread = false;
+	std::queue<Ee::IPUFunctionCall> m_ipuTaskQueue;
+	std::mutex m_ipuQueueMutex;
+	std::condition_variable m_ipuCv;
+	//
 
 private:
 	enum IPU_CTRL_BITS

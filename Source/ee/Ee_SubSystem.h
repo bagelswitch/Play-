@@ -101,6 +101,7 @@ namespace Ee
 		uint32 HandleVu1AreaRead(uint32);
 		void HandleVu1AreaWrite(uint32, uint32);
 
+		void processIPUQueue();
 		void ExecuteIpu();
 
 		void CheckPendingInterrupts();

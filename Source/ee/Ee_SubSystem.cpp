@@ -71,6 +71,9 @@ CSubSystem::CSubSystem(uint8* iopRam, CIopBios& iopBios)
 		    m_intc.AssertLine(CINTC::INTC_LINE_VU1);
 	    });
 
+	std::thread queuedIPUExecThread([&]() { return this->processIPUQueue(); });
+	queuedIPUExecThread.detach();
+
 	//EmotionEngine context setup
 	{
 		m_EE.m_executor = std::make_unique<CEeExecutor>(m_EE, m_ram);
@@ -320,7 +323,12 @@ void CSubSystem::CountTicks(int ticks)
 	m_ipu.CountTicks(ticks);
 	m_vpu0->GetVif().CountTicks(ticks);
 	m_vpu1->GetVif().CountTicks(ticks);
-	ExecuteIpu();
+	{
+		std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
+		m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&]() { return ExecuteIpu(); }));
+		lock.unlock();
+		m_ipu.m_ipuCv.notify_one();
+	}
 	if(!m_EE.m_State.nHasException)
 	{
 		if((m_EE.m_State.nCOP0[CCOP_SCU::STATUS] & CMIPS::STATUS_EXL) == 0)
@@ -434,7 +442,13 @@ uint32 CSubSystem::IOPortReadHandler(uint32 nAddress)
 	}
 	else if(nAddress >= 0x10002000 && nAddress <= 0x1000203F)
 	{
-		nReturn = m_ipu.GetRegister(nAddress);
+		{
+			std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
+			m_ipu.m_ipuCv.wait(lock, [this] { return m_ipu.m_ipuTaskQueue.empty(); });
+			nReturn = m_ipu.GetRegister(nAddress);
+			lock.unlock();
+			m_ipu.m_ipuCv.notify_one();
+		}
 	}
 	else if(nAddress >= CGIF::REGS_START && nAddress < CGIF::REGS_END)
 	{
@@ -514,8 +528,13 @@ uint32 CSubSystem::IOPortWriteHandler(uint32 nAddress, uint32 nData)
 	}
 	else if(nAddress >= 0x10002000 && nAddress <= 0x1000203F)
 	{
-		m_ipu.SetRegister(nAddress, nData);
-		ExecuteIpu();
+		{
+			std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
+			m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&, nAddress, nData]() { return m_ipu.SetRegister(nAddress, nData); }));
+			m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&]() { return ExecuteIpu(); }));
+			lock.unlock();
+			m_ipu.m_ipuCv.notify_one();
+		}
 	}
 	else if(nAddress >= CGIF::REGS_START && nAddress < CGIF::REGS_END)
 	{
@@ -543,13 +562,23 @@ uint32 CSubSystem::IOPortWriteHandler(uint32 nAddress, uint32 nData)
 	}
 	else if(nAddress >= 0x10007000 && nAddress <= 0x1000702F)
 	{
-		m_ipu.SetRegister(nAddress, nData);
-		ExecuteIpu();
+		{
+			//std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
+			m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&, nAddress, nData]() { return m_ipu.SetRegister(nAddress, nData); }));
+			m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&]() { return ExecuteIpu(); }));
+			//lock.unlock();
+			m_ipu.m_ipuCv.notify_one();
+		}
 	}
 	else if(nAddress >= 0x10008000 && nAddress <= 0x1000EFFC)
 	{
-		m_dmac.SetRegister(nAddress, nData);
-		ExecuteIpu();
+		{
+			std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
+			m_dmac.SetRegister(nAddress, nData);
+			m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&]() { return ExecuteIpu(); }));
+			lock.unlock();
+			m_ipu.m_ipuCv.notify_one();
+		}
 	}
 	else if(nAddress >= 0x1000F000 && nAddress <= 0x1000F01C)
 	{
@@ -765,6 +794,33 @@ void CSubSystem::HandleVu1AreaWrite(uint32 offset, uint32 value)
 	else
 	{
 		assert(false);
+	}
+}
+
+
+void CSubSystem::processIPUQueue()
+{
+	while(true)
+	{
+		std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
+		m_ipu.m_ipuCv.wait(lock, [this] { return !m_ipu.m_ipuTaskQueue.empty() || m_ipu.m_ipuStopThread; });
+
+		if(m_ipu.m_ipuStopThread && m_ipu.m_ipuTaskQueue.empty())
+		{
+			break; // Exit loop if stop signal received and queue is empty
+		}
+
+		while(!m_ipu.m_ipuTaskQueue.empty())
+		{
+			IPUFunctionCall task = m_ipu.m_ipuTaskQueue.front();
+			task.execute();
+			m_ipu.m_ipuTaskQueue.pop();
+		}
+		lock.unlock();
+		if(m_ipu.m_ipuTaskQueue.empty())
+		{
+			m_ipu.m_ipuCv.notify_one();
+		}
 	}
 }
 
