@@ -563,10 +563,10 @@ uint32 CSubSystem::IOPortWriteHandler(uint32 nAddress, uint32 nData)
 	else if(nAddress >= 0x10007000 && nAddress <= 0x1000702F)
 	{
 		{
-			//std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
+			std::unique_lock<std::mutex> lock(m_ipu.m_ipuQueueMutex);
 			m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&, nAddress, nData]() { return m_ipu.SetRegister(nAddress, nData); }));
 			m_ipu.m_ipuTaskQueue.push(IPUFunctionCall([&]() { return ExecuteIpu(); }));
-			//lock.unlock();
+			lock.unlock();
 			m_ipu.m_ipuCv.notify_one();
 		}
 	}
