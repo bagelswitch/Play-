@@ -270,6 +270,16 @@ bool CDMAC::IsEndDstTagId(uint32 tag)
 
 uint32 CDMAC::ReceiveDMA8(uint32 nDstAddress, uint32 nCount, uint32 unused, bool nTagIncluded)
 {
+	if(nTagIncluded && nCount == 1)
+	{
+		//memcpy(dstPtr + nDstAddress, (new uint64(0)), 0x08);
+		//memcpy(dstPtr + nDstAddress + 8, m_spr + m_D8_SADR + 8, 0x08);
+		nDstAddress += 0x10;
+		m_D9_SADR += 0x10;
+		m_D9_SADR &= SADR_WRITE_MASK;
+		return nCount;
+	}
+
 	assert(nTagIncluded == false);
 	assert(m_D8_SADR < PS2::EE_SPR_SIZE);
 
@@ -289,8 +299,8 @@ uint32 CDMAC::ReceiveDMA8(uint32 nDstAddress, uint32 nCount, uint32 unused, bool
 	uint32 remainTransfer = nCount;
 	while(remainTransfer != 0)
 	{
-		uint32 remainSpr = (PS2::EE_SPR_SIZE - m_D8_SADR) / 0x10;
-		uint32 copySize = std::min<uint32>(remainSpr, remainTransfer);
+		//uint32 remainSpr = (PS2::EE_SPR_SIZE - m_D8_SADR) / 0x10;
+		uint32 copySize = remainTransfer; //std::min<uint32>(remainSpr, remainTransfer);
 		memcpy(dstPtr + nDstAddress, m_spr + m_D8_SADR, copySize * 0x10);
 
 		remainTransfer -= copySize;
@@ -304,6 +314,16 @@ uint32 CDMAC::ReceiveDMA8(uint32 nDstAddress, uint32 nCount, uint32 unused, bool
 
 uint32 CDMAC::ReceiveDMA9(uint32 nSrcAddress, uint32 nCount, uint32 unused, bool nTagIncluded)
 {
+	if(nTagIncluded && nCount == 1)
+	{
+		//memcpy(m_spr + m_D9_SADR, (new uint64(0)), 0x08);
+		//memcpy(m_spr + m_D9_SADR + 8, srcPtr + nSrcAddress + 8, 0x08);
+		nSrcAddress += 0x10;
+		m_D9_SADR += 0x10;
+		m_D9_SADR &= SADR_WRITE_MASK;
+		return nCount;
+	}
+
 	assert(nTagIncluded == false);
 	assert(m_D9_SADR < PS2::EE_SPR_SIZE);
 
@@ -330,8 +350,8 @@ uint32 CDMAC::ReceiveDMA9(uint32 nSrcAddress, uint32 nCount, uint32 unused, bool
 	uint32 remainTransfer = nCount;
 	while(remainTransfer != 0)
 	{
-		uint32 remainSpr = (PS2::EE_SPR_SIZE - m_D9_SADR) / 0x10;
-		uint32 copySize = std::min<uint32>(remainSpr, remainTransfer);
+		//uint32 remainSpr = (PS2::EE_SPR_SIZE - m_D9_SADR) / 0x10;
+		uint32 copySize = remainTransfer; //std::min<uint32>(remainSpr, remainTransfer);
 		memcpy(m_spr + m_D9_SADR, srcPtr + nSrcAddress, copySize * 0x10);
 
 		remainTransfer -= copySize;

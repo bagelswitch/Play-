@@ -167,7 +167,7 @@ private:
 	int64 m_spuUpdateTicksTotal = 0;
 	int m_eeExecutionTicks = 0;
 	int m_iopExecutionTicks = 0;
-	static const int m_eeTickStep = 4800;
+	static const int m_eeTickStep = 9600;
 	int m_iopTickStep = 0;
 	CFrameLimiter m_frameLimiter;
 

@@ -208,9 +208,9 @@ void CVpu::ExecuteMicroProgram(uint32 nAddress)
 	assert(m_vuState != VU_STATE_RUNNING);
 	m_vuState = VU_STATE_RUNNING;
 	VuStateChanged(m_vuState);
-	for(unsigned int i = 0; i < 100; i++)
+	for(unsigned int i = 0; i < 500; i++)
 	{
-		Execute(5000);
+		Execute(1000);
 		if(m_vuState != VU_STATE_RUNNING) break;
 	}
 }

@@ -5,14 +5,14 @@ namespace PS2
 {
 	enum
 	{
-		EE_RAM_SIZE = 0x04000000,
-		EE_BASE_RAM_SIZE = 0x02000000,
-		EE_EXT_RAM_SIZE = 0x04000000,
+		EE_RAM_SIZE = 0x08000000,
+		EE_BASE_RAM_SIZE = 0x04000000,
+		EE_EXT_RAM_SIZE = 0x08000000,
 	};
 
 	enum
 	{
-		EE_CLOCK_FREQ = 0x11940000
+		EE_CLOCK_FREQ = 0x11F0E540 // 0x11940000
 	};
 
 	enum
@@ -26,7 +26,7 @@ namespace PS2
 		//Technically, SPR isn't mapped in the EE's physical address space,
 		//but we map it after RAM for convenience.
 		EE_SPR_ADDR = EE_RAM_SIZE,
-		EE_SPR_SIZE = 0x00004000,
+		EE_SPR_SIZE = 0x00008000,
 	};
 
 	enum
@@ -43,9 +43,9 @@ namespace PS2
 
 	enum
 	{
-		IOP_RAM_SIZE = 0x00400000,
-		IOP_BASE_RAM_SIZE = 0x00200000,
-		IOP_EXT_RAM_SIZE = 0x00400000,
+		IOP_RAM_SIZE = 0x00800000,
+		IOP_BASE_RAM_SIZE = 0x00400000,
+		IOP_EXT_RAM_SIZE = 0x00800000,
 	};
 
 	enum

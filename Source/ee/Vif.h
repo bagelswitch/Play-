@@ -596,9 +596,12 @@ protected:
 					(*dst) = writeValue;
 				}
 #ifdef FRAMEWORK_SIMD_USE_SSE
-				else if((colMask == 0) && (mode == MODE_OFFSET))
+				else if((colMask == 0) && (mode == MODE_OFFSET || mode == MODE_DIFFERENCE))
 				{
 					*reinterpret_cast<__m128i*>(dst) = _mm_add_epi32(*reinterpret_cast<__m128i*>(&writeValue), *reinterpret_cast<__m128i*>(&m_R));
+					if (mode == MODE_DIFFERENCE) {
+						*reinterpret_cast<__m128i*>(&m_R) = _mm_add_epi32(*reinterpret_cast<__m128i*>(&writeValue), *reinterpret_cast<__m128i*>(&m_R));
+					}
 				}
 #endif
 				else
