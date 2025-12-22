@@ -88,7 +88,7 @@ namespace Iop
 			{
 			}
 
-			FileInfo(FileInfo&& rhs)
+			FileInfo(FileInfo&& rhs) noexcept
 			{
 				MoveFrom(std::move(rhs));
 			}
@@ -98,7 +98,7 @@ namespace Iop
 				Reset();
 			}
 
-			FileInfo& operator=(FileInfo&& rhs)
+			FileInfo& operator=(FileInfo&& rhs) noexcept
 			{
 				MoveFrom(std::move(rhs));
 				return (*this);
