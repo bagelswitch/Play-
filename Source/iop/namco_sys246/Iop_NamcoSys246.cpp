@@ -724,10 +724,12 @@ void CSys246::SetScreenPosition(float x, float y)
 		if(y < 0.005) y = -0.1;
 		if(x < 0.005) x = -0.1;
 	}
+	/*
 	else {
-		std::clamp<float>(x, 0, 1);
-		std::clamp<float>(y, 0, 1);
+		x = std::clamp<float>(x, 0, 1);
+		y = std::clamp<float>(y, 0, 1);
 	}
+	*/
 
 	m_jvsScreenPosX = static_cast<int16>((x * m_screenPosXform[0]) + m_screenPosXform[1]);
 	m_jvsScreenPosY = static_cast<int16>((y * m_screenPosXform[2]) + m_screenPosXform[3]);
