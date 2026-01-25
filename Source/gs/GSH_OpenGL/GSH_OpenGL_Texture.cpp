@@ -759,7 +759,8 @@ GLuint CGSH_OpenGL::PalCache_Search_Map(const TEX0& tex0)
 	{
 		return it->second;
 	}
-    else {
+	else
+	{
 		return 0;
 	}
 }
@@ -775,7 +776,8 @@ GLuint CGSH_OpenGL::PalCache_Search_Map(unsigned int entryCount, const uint32* c
 		PalCache_Insert_Map(value.m_isIDTEX4, value.m_cpsm, value.m_csa, value.m_texture);
 		return value.m_texture;
 	}
-	else {
+	else
+	{
 		return 0;
 	}
 }
@@ -802,7 +804,7 @@ void CGSH_OpenGL::PalCache_Insert_Map(const TEX0& tex0, const uint32* contents, 
 	key->m_live = true;
 
 	m_paletteCacheMap[*key] = textureHandle;
-	
+
 	unsigned int entryCount = key->m_isIDTEX4 ? 16 : 256;
 	auto key2 = calculateSimpleChecksum(contents, entryCount);
 	auto value = new CGSH_OpenGL::M2Palette();

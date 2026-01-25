@@ -573,14 +573,17 @@ void CSys246::SetButtonState(unsigned int padNumber, PS2::CControllerInfo::BUTTO
 
 			if(m_jvsMode == JVS_MODE::DRIVE)
 			{
-                if(button == 13) {
-                    m_jvsWheelChannels[JVS_WHEEL_CHANNEL_GAZ] = (pressed ? 255 << 8 : 0 << 8);
-                } else if ( button ==10) {
-                    m_jvsWheelChannels[JVS_WHEEL_CHANNEL_BRAKE] = (pressed ? 255 << 8 : 0 << 8);
-                }
+				if(button == 13)
+				{
+					m_jvsWheelChannels[JVS_WHEEL_CHANNEL_GAZ] = (pressed ? 255 << 8 : 0 << 8);
+				}
+				else if(button == 10)
+				{
+					m_jvsWheelChannels[JVS_WHEEL_CHANNEL_BRAKE] = (pressed ? 255 << 8 : 0 << 8);
+				}
 				m_jvsWheelChannels[JVS_WHEEL_CHANNEL_WHEEL] = m_jvsWheel << 8;
-                //m_jvsWheelChannels[JVS_WHEEL_CHANNEL_GAZ] = m_jvsGaz << 8;
-                //m_jvsWheelChannels[JVS_WHEEL_CHANNEL_BRAKE] = m_jvsBrake << 8;
+				//m_jvsWheelChannels[JVS_WHEEL_CHANNEL_GAZ] = m_jvsGaz << 8;
+				//m_jvsWheelChannels[JVS_WHEEL_CHANNEL_BRAKE] = m_jvsBrake << 8;
 			}
 			else if(m_jvsMode == JVS_MODE::DRUM)
 			{
@@ -592,18 +595,20 @@ void CSys246::SetButtonState(unsigned int padNumber, PS2::CControllerInfo::BUTTO
 			else if(m_jvsMode == JVS_MODE::LIGHTGUN && m_gameId == "vnight")
 			{
 				// We can "synthesize" recoil events in Vampire Night by counting on-screen shots
-				
+
 				int p1Recoil = m_p1RecoilLast;
 
 				// pointing the gun off-screen reloads
 				float rawX = (m_jvsScreenPosX - m_screenPosXform[1]) / m_screenPosXform[0];
 				float rawY = (m_jvsScreenPosY - m_screenPosXform[3]) / m_screenPosXform[2];
 				bool onScreen = rawX > 0.0 && rawX < 1.0 && rawY > 0.0 && rawY < 1.0;
-				if (!onScreen) {
+				if(!onScreen)
+				{
 					m_onscreenShotCount = 0;
 				}
 
-				if (button == PS2::CControllerInfo::CIRCLE) {
+				if(button == PS2::CControllerInfo::CIRCLE)
+				{
 					if(pressed)
 					{
 						if(!m_pressedLast)
@@ -619,7 +624,8 @@ void CSys246::SetButtonState(unsigned int padNumber, PS2::CControllerInfo::BUTTO
 							}
 						}
 					}
-					else {
+					else
+					{
 						p1Recoil = 0;
 					}
 					m_pressedLast = pressed;
@@ -695,30 +701,31 @@ void CSys246::SetAxisState(unsigned int padNumber, PS2::CControllerInfo::BUTTON 
 {
 	switch(button)
 	{
-        case PS2::CControllerInfo::BUTTON::ANALOG_LEFT_X:
-            //if(axisValue >= 0 || axisValue < 128) m_jvsWheel = axisValue + 128;
-            //if(axisValue > 128 || axisValue < 256) m_jvsWheel = axisValue - 128;
-            m_jvsWheel = axisValue;
-            break;
-        case PS2::CControllerInfo::BUTTON::ANALOG_LEFT_Y:
-            //if(axisValue >= 128) axisValue = 127; // limit Left stick Y axis to Y+
-            //m_jvsGaz = -axisValue + 127;
-            break;
-        case PS2::CControllerInfo::BUTTON::ANALOG_RIGHT_X:
-            //if(axisValue < 128) axisValue = 128; // limit Right stick X axis to X+
-            //m_jvsBrake = axisValue - 128;
-            break;
-        case PS2::CControllerInfo::BUTTON::ANALOG_RIGHT_Y:
-            break;
-        default:
-            break;
+	case PS2::CControllerInfo::BUTTON::ANALOG_LEFT_X:
+		//if(axisValue >= 0 || axisValue < 128) m_jvsWheel = axisValue + 128;
+		//if(axisValue > 128 || axisValue < 256) m_jvsWheel = axisValue - 128;
+		m_jvsWheel = axisValue;
+		break;
+	case PS2::CControllerInfo::BUTTON::ANALOG_LEFT_Y:
+		//if(axisValue >= 128) axisValue = 127; // limit Left stick Y axis to Y+
+		//m_jvsGaz = -axisValue + 127;
+		break;
+	case PS2::CControllerInfo::BUTTON::ANALOG_RIGHT_X:
+		//if(axisValue < 128) axisValue = 128; // limit Right stick X axis to X+
+		//m_jvsBrake = axisValue - 128;
+		break;
+	case PS2::CControllerInfo::BUTTON::ANALOG_RIGHT_Y:
+		break;
+	default:
+		break;
 	}
 }
 
 void CSys246::SetScreenPosition(float x, float y)
 {
 	// Allows off-screen shot for reload in Vampire Night
-	if (m_gameId == "vnight") {
+	if(m_gameId == "vnight")
+	{
 		if(y > 0.995) y = 1.1;
 		if(x > 0.995) x = 1.1;
 		if(y < 0.005) y = -0.1;
@@ -726,8 +733,8 @@ void CSys246::SetScreenPosition(float x, float y)
 	}
 	/*
 	else {
-		x = std::clamp<float>(x, 0, 1);
-		y = std::clamp<float>(y, 0, 1);
+	    x = std::clamp<float>(x, 0, 1);
+	    y = std::clamp<float>(y, 0, 1);
 	}
 	*/
 

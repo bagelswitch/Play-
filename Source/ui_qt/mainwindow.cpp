@@ -461,8 +461,8 @@ void MainWindow::BootArcadeMachine(fs::path arcadeDefPath)
 		ogl_scale_factors["soulclb3"] = 4; // works at all scaling factors
 		ogl_scale_factors["batlgr38"] = 4; // works at all scaling factors
 		ogl_scale_factors["batlgr3t"] = 4; // works at all scaling factors
-		ogl_scale_factors["fghtjam"] = 2; // scale factor 2 fixes mis-aligned character sprite segments
-		ogl_scale_factors["sbxc"] = 1; // scale factor 1 fixes mis-aligned first column in opening video
+		ogl_scale_factors["fghtjam"] = 2;  // scale factor 2 fixes mis-aligned character sprite segments
+		ogl_scale_factors["sbxc"] = 1;     // scale factor 1 fixes mis-aligned first column in opening video
 		ogl_scale_factors["tekken51"] = 1; // scale factor 1 fixes mis-colored textures
 		ogl_scale_factors["motogp"] = 1;   // scale factor 1 fixes dashed horizontal black lines in background tiles
 		ogl_scale_factors["default"] = 1;
@@ -471,7 +471,8 @@ void MainWindow::BootArcadeMachine(fs::path arcadeDefPath)
 		{
 			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, ogl_scale_factors[arcadeDefPath.stem().string()]);
 		}
-		else {
+		else
+		{
 			CAppConfig::GetInstance().SetPreferenceInteger(PREF_CGSH_OPENGL_RESOLUTION_FACTOR, ogl_scale_factors["default"]);
 		}
 

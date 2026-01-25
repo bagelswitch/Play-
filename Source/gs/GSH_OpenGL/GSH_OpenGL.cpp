@@ -80,7 +80,6 @@ void CGSH_OpenGL::InitializeImpl()
 
 	m_nVtxCount = 0;
 
-
 	m_renderState.isValid = false;
 	m_validGlState = 0;
 }
@@ -698,7 +697,7 @@ void CGSH_OpenGL::SetRenderingContext(uint64 primReg)
 void CGSH_OpenGL::SetupBlendingFunction(uint64 alphaReg)
 {
 	auto alpha = make_convertible<ALPHA>(alphaReg);
-	
+
 	if(m_hasFramebufferFetchExtension)
 	{
 		m_fragmentParams.alphaFix = (static_cast<float>(alpha.nFix) / 255.f);

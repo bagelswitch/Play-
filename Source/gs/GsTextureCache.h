@@ -38,7 +38,8 @@ public:
 			auto result = it->second;
 			return result.get();
 		}
-		else {
+		else
+		{
 			return nullptr;
 		}
 	}
