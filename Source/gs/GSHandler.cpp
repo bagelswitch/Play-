@@ -1268,6 +1268,7 @@ unsigned int CGSHandler::GetCrtWidth() const
 		[[fallthrough]];
 	case CRT_MODE_NTSC:
 	case CRT_MODE_PAL:
+	case CRT_MODE_VGA_640_60:
 	case CRT_MODE_VGA_640_75:
 		return 640;
 	case CRT_MODE_HDTV_480P:
@@ -1286,6 +1287,7 @@ unsigned int CGSHandler::GetCrtHeight() const
 		return 448;
 	case CRT_MODE_PAL:
 		return 512;
+	case CRT_MODE_VGA_640_60:
 	case CRT_MODE_VGA_640_75:
 	case CRT_MODE_HDTV_480P:
 		return 480;
@@ -1300,6 +1302,7 @@ uint32 CGSHandler::GetCrtFrameRate() const
 		assert(false);
 		[[fallthrough]];
 	case CRT_MODE_NTSC:
+	case CRT_MODE_VGA_640_60:
 	case CRT_MODE_HDTV_480P:
 		return 60;
 	case CRT_MODE_PAL:
@@ -1318,6 +1321,8 @@ uint32 CGSHandler::GetCrtHSyncFrequency() const
 		return PS2::GS_NTSC_HSYNC_FREQ;
 	case CRT_MODE_PAL:
 		return PS2::GS_PAL_HSYNC_FREQ;
+	case CRT_MODE_VGA_640_60:
+		return PS2::GS_VGA_640_60_HSYNC_FREQ;
 	case CRT_MODE_HDTV_480P:
 		return PS2::GS_HDTV_480P_HSYNC_FREQ;
 	}
